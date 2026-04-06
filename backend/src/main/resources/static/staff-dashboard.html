@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Dashboard — SecureEdu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/fireworks.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/ui-utils.js"></script>
+</head>
+<body class="dashboard-page staff-role">
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-logo">👨‍🏫</div>
+        <div><div class="sidebar-app-name">SecureEdu</div><div class="sidebar-role">Staff Portal</div></div>
+    </div>
+    <nav class="sidebar-nav">
+        <div class="nav-section-title">Overview</div>
+        <div class="nav-item active" onclick="showSection('overview',this)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard
+        </div>
+        <div class="nav-section-title">Students</div>
+        <div class="nav-item" onclick="showSection('students',this)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>All Students
+        </div>
+        <div class="nav-item" onclick="showSection('unblock',this)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+            Unblock Requests <span id="unblockBadge" class="badge danger ml-auto" style="display:none;"></span>
+        </div>
+        <div class="nav-section-title">Academics</div>
+        <div class="nav-item" onclick="showSection('subjects',this)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>My Subjects
+        </div>
+        <div class="nav-item" onclick="showSection('marks',this)">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Update Marks
+        </div>
+    </nav>
+    <div class="sidebar-footer">
+        <div class="user-card">
+            <div class="user-avatar" id="userAvatar">S</div>
+            <div class="user-info"><div class="user-name" id="sidebarName">Loading...</div><div class="user-role">Staff Member</div></div>
+        </div>
+        <button class="btn-logout" onclick="window.location.href=`${window.ENV.API_BASE_URL}/logout`">Sign Out</button>
+    </div>
+</aside>
+
+<main class="dashboard-main">
+    <div class="dashboard-topbar">
+        <div><div class="topbar-title" id="pageTitle">Staff Dashboard</div><div class="topbar-subtitle" id="pageSubtitle">Manage students and track performance.</div></div>
+    </div>
+    <div class="dashboard-content">
+
+        <!-- OVERVIEW -->
+        <div id="section-overview" class="section">
+            <div class="stats-grid">
+                <div class="stat-card primary"><div class="stat-icon primary">🎓</div><div class="stat-value" id="stat-total">--</div><div class="stat-label">Total Students</div></div>
+                <div class="stat-card danger"><div class="stat-icon danger">🔒</div><div class="stat-value" id="stat-blocked">--</div><div class="stat-label">Blocked Students</div></div>
+                <div class="stat-card warning"><div class="stat-icon warning">⚠️</div><div class="stat-value" id="stat-lowScore">--</div><div class="stat-label">Low Score Students</div></div>
+                <div class="stat-card info"><div class="stat-icon info">📬</div><div class="stat-value" id="stat-pending">--</div><div class="stat-label">Pending Requests</div></div>
+            </div>
+            <div class="card">
+                <div class="card-header"><div class="card-title">Welcome, <span id="welcomeName">Staff</span></div><div class="card-subtitle" id="staffInfo">--</div></div>
+                <div class="card-body" style="text-align:center;padding:28px;">
+                    <p style="color:var(--text-secondary);margin-bottom:16px;">Navigate using the sidebar to manage students, subjects, marks, and unblock requests.</p>
+                    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                        <button class="btn btn-primary" onclick="showSection('students',null)">View Students</button>
+                        <button class="btn btn-warning" onclick="showSection('unblock',null)">Unblock Requests</button>
+                        <button class="btn btn-ghost" onclick="showSection('subjects',null)">Manage Subjects</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STUDENTS -->
+        <div id="section-students" class="section" style="display:none;">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">All Students</div>
+                    <div class="search-wrapper">
+                        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="text" class="search-input" placeholder="Search..." id="studentSearch" oninput="filterStudents()">
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead><tr><th>Name</th><th>Roll No</th><th>Dept</th><th>Attendance</th><th>Grade</th><th>Score</th><th>Status</th><th>Last Login</th><th>Fails</th><th>Actions</th></tr></thead>
+                        <tbody id="studentsBody"><tr><td colspan="10" class="text-center" style="padding:40px;"><div class="spinner"></div></td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- UNBLOCK -->
+        <div id="section-unblock" class="section" style="display:none;">
+            <div class="card">
+                <div class="card-header"><div class="card-title">Pending Unblock Requests</div></div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead><tr><th>Student</th><th>Email</th><th>Score</th><th>Reason</th><th>Requested</th><th>Actions</th></tr></thead>
+                        <tbody id="unblockBody"><tr><td colspan="6" class="text-center" style="padding:40px;"><div class="spinner"></div></td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SUBJECTS -->
+        <div id="section-subjects" class="section" style="display:none;">
+            <div class="card mb-6">
+                <div class="card-header"><div class="card-title">Add New Subject</div></div>
+                <div class="card-body">
+                    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+                        <div style="flex:2;min-width:180px;"><label class="form-label">Subject Name</label><input type="text" id="subjectName" class="form-control" placeholder="Data Structures"></div>
+                        <div style="flex:1;min-width:120px;"><label class="form-label">Code</label><input type="text" id="subjectCode" class="form-control" placeholder="CS301"></div>
+                        <div style="flex:1;min-width:100px;"><label class="form-label">Credits</label><input type="number" id="subjectCredits" class="form-control" value="3" min="1" max="6"></div>
+                        <button class="btn btn-primary" onclick="addSubject()">Add Subject</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><div class="card-title">My Subjects</div></div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead><tr><th>Subject</th><th>Code</th><th>Credits</th><th>Enrolled</th></tr></thead>
+                        <tbody id="subjectsBody"><tr><td colspan="4" class="text-center" style="padding:40px;"><div class="spinner"></div></td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- MARKS -->
+        <div id="section-marks" class="section" style="display:none;">
+            <div class="card mb-6">
+                <div class="card-header"><div class="card-title">Update Student Marks</div></div>
+                <div class="card-body">
+                    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+                        <div style="flex:2;min-width:180px;"><label class="form-label">Subject</label><select id="marksSubject" class="form-control filter-select" style="width:100%;" onchange="loadSubjectMarks()"><option value="">-- Select Subject --</option></select></div>
+                        <div style="flex:2;min-width:180px;"><label class="form-label">Student</label><select id="marksStudent" class="form-control filter-select" style="width:100%;"><option value="">-- Select Student --</option></select></div>
+                        <div style="flex:1;min-width:100px;"><label class="form-label">Marks</label><input type="number" id="marksValue" class="form-control" placeholder="0" min="0"></div>
+                        <div style="flex:1;min-width:100px;"><label class="form-label">Max</label><input type="number" id="maxMarksValue" class="form-control" value="100" min="1"></div>
+                        <button class="btn btn-primary" onclick="updateMarks()">Update</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><div class="card-title">Current Marks for Subject</div></div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead><tr><th>Student</th><th>Marks</th><th>Max</th><th>Percentage</th></tr></thead>
+                        <tbody id="currentMarksBody"><tr><td colspan="4" class="text-center" style="padding:40px;color:var(--text-muted);">Select a subject</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- History Modal -->
+<div class="modal-overlay" id="historyModal">
+    <div class="modal" style="max-width:680px;">
+        <div class="modal-header"><div class="modal-title" id="historyModalTitle">Login History</div><button class="modal-close" onclick="closeModal('historyModal')">×</button></div>
+        <div class="modal-body" style="max-height:60vh;overflow-y:auto;">
+            <table class="data-table"><thead><tr><th>Time</th><th>IP</th><th>Device</th><th>Status</th><th>Risk</th></tr></thead>
+            <tbody id="historyModalBody"></tbody></table>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+let allStudents=[], staffData=null, mySubjects=[];
+window.addEventListener('DOMContentLoaded',async()=>{
+    const auth = await window.requireAuth('staff');
+    if(!auth) return;
+    
+    setTimeout(()=>{ if(window.SecureEduFireworks) window.SecureEduFireworks.launch(); }, 200);
+    await loadDashboard(); await loadStudents();
+});
+
+async function loadDashboard(){
+    const r=await apiFetch('api/staff?action=dashboard'); if(!r.success)return;
+    staffData=r;
+    document.getElementById('sidebarName').textContent=r.staff.name;
+    document.getElementById('userAvatar').textContent=r.staff.name.charAt(0).toUpperCase();
+    document.getElementById('welcomeName').textContent=r.staff.name.split(' ')[0];
+    document.getElementById('staffInfo').textContent=r.staff.designation+' — '+r.staff.department;
+    document.getElementById('stat-total').textContent=r.summary.totalStudents;
+    document.getElementById('stat-blocked').textContent=r.summary.blockedStudents;
+    document.getElementById('stat-lowScore').textContent=r.summary.lowScoreStudents;
+    document.getElementById('stat-pending').textContent=r.summary.pendingRequests;
+    if(r.summary.pendingRequests>0){ const b=document.getElementById('unblockBadge'); b.textContent=r.summary.pendingRequests; b.style.display='inline-flex'; }
+}
+
+async function loadStudents(){
+    const r=await apiFetch('api/staff?action=students'); if(!r.success)return;
+    allStudents=r.students; renderStudents(allStudents);
+}
+
+function renderStudents(students){
+    const tb=document.getElementById('studentsBody');
+    if(!students.length){ tb.innerHTML='<tr><td colspan="10" class="text-center" style="padding:40px;color:var(--text-muted);">No students found</td></tr>'; return; }
+    tb.innerHTML=students.map(s=>{
+        const sc=s.loginScore>60?'var(--success)':s.loginScore>30?'var(--warning)':'var(--danger)';
+        return `<tr>
+            <td style="font-weight:600;">${s.name}</td>
+            <td><code>${s.rollNumber||'--'}</code></td>
+            <td>${s.department||'--'}</td>
+            <td>${s.attendance}%</td>
+            <td><span class="badge ${s.grade==='A+'||s.grade==='A'?'success':s.grade==='B'?'info':'warning'}">${s.grade}</span></td>
+            <td style="color:${sc};font-weight:700;">${s.loginScore}</td>
+            <td><span class="badge ${s.status==='active'?'success':'danger'}">${s.status}</span></td>
+            <td style="font-size:0.8rem;">${formatDate(s.lastLogin)}</td>
+            <td style="color:var(--danger);font-weight:600;">${s.totalFails}</td>
+            <td><div style="display:flex;gap:4px;">
+                <button class="btn btn-ghost btn-sm" onclick="viewHistory(${s.id},'${esc(s.name)}')">📋</button>
+                ${s.status==='active'?`<button class="btn btn-danger btn-sm" onclick="blockStudent(${s.id},'${esc(s.name)}')">🔒 Block</button>`:'<span class="badge muted">Blocked</span>'}
+            </div></td>
+        </tr>`;
+    }).join('');
+}
+
+function filterStudents(){
+    const q=document.getElementById('studentSearch').value.toLowerCase();
+    renderStudents(allStudents.filter(s=>s.name.toLowerCase().includes(q)||(s.rollNumber&&s.rollNumber.toLowerCase().includes(q))));
+}
+
+async function loadUnblockRequests(){
+    const r=await apiFetch('api/staff?action=unblockRequests'); if(!r.success)return;
+    const tb=document.getElementById('unblockBody');
+    if(!r.requests.length){ tb.innerHTML='<tr><td colspan="6" class="text-center" style="padding:40px;color:var(--text-muted);">No pending requests</td></tr>'; return; }
+    tb.innerHTML=r.requests.map(req=>`<tr>
+        <td style="font-weight:600;">${req.studentName}</td>
+        <td>${req.studentEmail}</td>
+        <td style="color:var(--danger);font-weight:700;">${req.loginScore}/100</td>
+        <td style="max-width:200px;font-size:0.8rem;">${req.reason||'--'}</td>
+        <td style="font-size:0.8rem;">${formatDate(req.requestedAt)}</td>
+        <td><div style="display:flex;gap:6px;">
+            <button class="btn btn-success btn-sm" onclick="approveUnblock(${req.id})">✅ Approve</button>
+            <button class="btn btn-danger btn-sm" onclick="rejectUnblock(${req.id})">❌ Reject</button>
+        </div></td>
+    </tr>`).join('');
+}
+
+async function loadSubjects(){
+    const r=await apiFetch('api/staff?action=subjects'); if(!r.success)return;
+    mySubjects=r.subjects;
+    const tb=document.getElementById('subjectsBody');
+    tb.innerHTML=r.subjects.length?r.subjects.map(s=>`<tr>
+        <td style="font-weight:600;">${s.subjectName}</td>
+        <td><code style="color:var(--primary-light);">${s.subjectCode}</code></td>
+        <td>${s.credits} credits</td>
+        <td><span class="badge info">${s.enrolledCount} enrolled</span></td>
+    </tr>`).join(''):'<tr><td colspan="4" class="text-center" style="padding:32px;color:var(--text-muted);">No subjects yet</td></tr>';
+    const sel=document.getElementById('marksSubject');
+    sel.innerHTML='<option value="">-- Select Subject --</option>'+r.subjects.map(s=>`<option value="${s.id}">${s.subjectName} (${s.subjectCode})</option>`).join('');
+}
+
+async function loadSubjectMarks(){
+    const sid=document.getElementById('marksSubject').value; if(!sid)return;
+    document.getElementById('marksStudent').innerHTML=allStudents.map(s=>`<option value="${s.id}">${s.name} (${s.rollNumber||'N/A'})</option>`).join('');
+    const r=await apiFetch(`api/staff?action=marksBySubject&subjectId=${sid}`); if(!r.success)return;
+    const tb=document.getElementById('currentMarksBody');
+    tb.innerHTML=r.marks.length?r.marks.map(m=>`<tr>
+        <td style="font-weight:600;">${m.studentName}</td><td>${m.marks}</td><td>${m.maxMarks}</td><td>${m.percentage}%</td>
+    </tr>`).join(''):'<tr><td colspan="4" class="text-center" style="padding:24px;color:var(--text-muted);">No marks yet</td></tr>';
+}
+
+async function addSubject(){
+    const n=document.getElementById('subjectName').value.trim(), c=document.getElementById('subjectCode').value.trim(), cr=document.getElementById('subjectCredits').value;
+    if(!n||!c){toast('Name and code required','warning');return;}
+    const r=await apiPost('api/staff?action=addSubject',{subjectName:n,subjectCode:c,credits:cr});
+    if(r.success){toast('Subject added!','success');document.getElementById('subjectName').value='';document.getElementById('subjectCode').value='';await loadSubjects();}
+    else toast(r.message,'error');
+}
+
+async function updateMarks(){
+    const si=document.getElementById('marksStudent').value, subj=document.getElementById('marksSubject').value,
+          m=document.getElementById('marksValue').value, mx=document.getElementById('maxMarksValue').value;
+    if(!si||!subj||m===''){toast('All fields required','warning');return;}
+    const r=await apiPost('api/staff?action=updateMarks',{studentId:si,subjectId:subj,marks:m,maxMarks:mx});
+    if(r.success){toast('Marks updated!','success');await loadSubjectMarks();}else toast(r.message,'error');
+}
+
+async function blockStudent(id,name){
+    if(!confirm(`Block "${name}"?`))return;
+    const r=await apiPost('api/staff?action=blockStudent',{studentId:id});
+    if(r.success){toast(name+' blocked','success');await loadStudents();await loadDashboard();}else toast(r.message,'error');
+}
+async function approveUnblock(id){
+    const r=await apiPost('api/staff?action=unblockStudent',{requestId:id});
+    if(r.success){toast('Student unblocked!','success');await loadUnblockRequests();await loadStudents();await loadDashboard();}else toast(r.message,'error');
+}
+async function rejectUnblock(id){
+    const r=await apiPost('api/staff?action=rejectUnblock',{requestId:id});
+    if(r.success){toast('Request rejected','warning');await loadUnblockRequests();}else toast(r.message,'error');
+}
+
+async function viewHistory(studentId,name){
+    document.getElementById('historyModalTitle').textContent='Login History — '+name;
+    document.getElementById('historyModal').classList.add('open');
+    document.getElementById('historyModalBody').innerHTML='<tr><td colspan="5" class="text-center"><div class="spinner"></div></td></tr>';
+    const r=await apiFetch(`api/staff?action=studentHistory&studentId=${studentId}`);
+    document.getElementById('historyModalBody').innerHTML=r.success&&r.history.length?r.history.map(a=>`<tr>
+        <td style="font-size:0.8rem;white-space:nowrap;">${formatDate(a.timestamp)}</td>
+        <td><code>${a.ipAddress}</code></td><td>${a.device}</td>
+        <td><span class="badge ${a.status==='success'?'success':a.status==='blocked'?'danger':'warning'}">${a.status}</span></td>
+        <td><span class="badge ${a.riskLevel==='high'?'danger':a.riskLevel==='medium'?'warning':'success'}">${a.riskLevel}</span></td>
+    </tr>`).join(''):'<tr><td colspan="5" class="text-center" style="color:var(--text-muted);">No history</td></tr>';
+}
+
+async function showSection(name,el){
+    document.querySelectorAll('.section').forEach(s=>s.style.display='none');
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    document.getElementById('section-'+name).style.display='block';
+    if(el)el.classList.add('active');
+    const t={overview:'Staff Dashboard',students:'All Students',unblock:'Unblock Requests',subjects:'My Subjects',marks:'Update Marks'};
+    document.getElementById('pageTitle').textContent=t[name]||'Dashboard';
+    if(name==='unblock')await loadUnblockRequests();
+    if(name==='subjects')await loadSubjects();
+}
+
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function formatDate(d){if(!d||d==='Never')return 'Never';try{return new Date(d).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return d;}}
+function esc(s){return s?s.replace(/'/g,"\\'"):'';}
+async function apiFetch(url){const r=await fetch(`${window.ENV.API_BASE_URL}/${url}`, {credentials:'include'});if(r.status===401){window.location.href='index.html';throw{status:401};}return r.json();}
+async function apiPost(url,data){const r=await fetch(`${window.ENV.API_BASE_URL}/${url}`,{method:'POST',credentials:'include',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(data).toString()});if(r.status===401){window.location.href='index.html';throw{status:401};}return r.json();}
+function toast(msg,type='info'){const c=document.getElementById('toastContainer'),icons={success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'},d=document.createElement('div');d.className=`toast ${type}`;d.innerHTML=`<span>${icons[type]}</span><span>${msg}</span>`;c.appendChild(d);setTimeout(()=>d.remove(),4000);}
+</script>
+</body>
+</html>
