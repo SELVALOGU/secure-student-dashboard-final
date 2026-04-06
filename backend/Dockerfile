@@ -10,7 +10,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Stage 2: Run the application
-FROM eclipse-temurin:8-jre-alpine
+FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 
 # Copy the built jar file from the build stage
