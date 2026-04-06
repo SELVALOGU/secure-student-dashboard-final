@@ -1,0 +1,8 @@
+target/
+.idea/
+*.iml
+*.log
+.vscode/
+hashes.txt
+test_output.txt
+.gemini/

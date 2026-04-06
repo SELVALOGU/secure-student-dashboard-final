@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureEdu — Student Login Behavior Analyzer</title>
+    <meta name="description" content="Secure multi-role login system with behavior analytics.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* ---- UNBLOCK PANEL ---- */
+        .unblock-panel {
+            margin-top: 20px;
+            background: rgba(239,68,68,0.08);
+            border: 1px solid rgba(239,68,68,0.3);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            animation: slideIn 0.35s ease;
+        }
+        .unblock-panel-header {
+            padding: 14px 16px;
+            background: rgba(239,68,68,0.12);
+            display: flex; align-items: center; gap: 10px;
+            cursor: pointer; user-select: none;
+        }
+        .unblock-panel-header h3 {
+            font-size: 0.875rem; font-weight: 700;
+            color: #f87171; flex: 1;
+        }
+        .unblock-panel-header .chevron {
+            transition: transform 0.3s ease; color: #f87171; font-size: 1rem;
+        }
+        .unblock-panel-header.open .chevron { transform: rotate(180deg); }
+        .unblock-panel-body {
+            padding: 16px;
+            border-top: 1px solid rgba(239,68,68,0.15);
+            display: none;
+        }
+        .unblock-panel-body.open { display: block; }
+        .unblock-panel-body p {
+            font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.5;
+        }
+        .unblock-panel-body textarea {
+            width: 100%; padding: 10px 12px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-xs); color: var(--text-primary);
+            font-family: inherit; font-size: 0.85rem;
+            resize: vertical; min-height: 80px; outline: none;
+            transition: var(--transition); margin-bottom: 10px;
+        }
+        .unblock-panel-body textarea:focus {
+            border-color: #f87171; box-shadow: 0 0 0 3px rgba(239,68,68,0.15);
+        }
+        .btn-unblock-submit {
+            width: 100%; padding: 10px; background: rgba(239,68,68,0.2);
+            border: 1px solid rgba(239,68,68,0.4); border-radius: var(--radius-xs);
+            color: #f87171; font-family: inherit; font-size: 0.875rem; font-weight: 700;
+            cursor: pointer; transition: var(--transition); display: flex;
+            align-items: center; justify-content: center; gap: 6px;
+        }
+        .btn-unblock-submit:hover { background: rgba(239,68,68,0.3); border-color: rgba(239,68,68,0.6); }
+        .btn-unblock-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* Extra color strips on brand panel */
+        .brand-panel-strip {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, #7C3AED,#06B6D4,#10B981,#F59E0B,#EF4444,#7C3AED);
+            background-size: 200% 100%; animation: rainbow-move 4s linear infinite;
+        }
+        @keyframes rainbow-move {
+            0%   { background-position: 0% 0%; }
+            100% { background-position: 200% 0%; }
+        }
+    </style>
+</head>
+<body class="login-page">
+
+    <!-- Animated background -->
+    <div class="bg-animation">
+        <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+        <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+    </div>
+
+    <!-- ===== LOGIN CONTAINER ===== -->
+    <div class="login-wrapper">
+
+        <!-- Left branding panel -->
+        <div class="login-brand-panel">
+            <div class="brand-panel-strip"></div>
+            <div class="brand-content">
+                <div class="brand-logo">
+                    <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+                        <rect width="56" height="56" rx="16" fill="rgba(255,255,255,0.15)"/>
+                        <path d="M28 10L42 18V30C42 38.8 36.4 46.2 28 49C19.6 46.2 14 38.8 14 30V18L28 10Z" fill="white" fill-opacity="0.9"/>
+                        <path d="M23 28L27 32L33 24" stroke="#6C63FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h1 class="brand-title">SecureEdu</h1>
+                <p class="brand-subtitle">Student Login Behavior Analyzer</p>
+
+                <div class="brand-features">
+                    <div class="feature-item"><span class="feature-icon">🔐</span><span>BCrypt password security</span></div>
+                    <div class="feature-item"><span class="feature-icon">📊</span><span>Real-time risk analysis</span></div>
+                    <div class="feature-item"><span class="feature-icon">🎓</span><span>Role-based dashboards</span></div>
+                    <div class="feature-item"><span class="feature-icon">🛡️</span><span>Suspicious behavior detection</span></div>
+                </div>
+
+                <div class="demo-credentials">
+                    <p class="cred-title">Demo Credentials</p>
+                    <div class="cred-item" onclick="fillCredentials('admin@school.edu','Admin@123')">
+                        <span class="cred-role admin">Admin</span>
+                        <span class="cred-email">admin@school.edu</span>
+                    </div>
+                    <div class="cred-item" onclick="fillCredentials('priya.sharma@school.edu','Staff@123')">
+                        <span class="cred-role staff">Staff</span>
+                        <span class="cred-email">priya.sharma@school.edu</span>
+                    </div>
+                    <div class="cred-item" onclick="fillCredentials('arjun.nair@student.edu','Student@123')">
+                        <span class="cred-role student">Student</span>
+                        <span class="cred-email">arjun.nair@student.edu</span>
+                    </div>
+                    <div class="cred-item" onclick="fillCredentials('rahul.verma@student.edu','Student@123')" style="opacity:0.7;">
+                        <span class="cred-role" style="background:rgba(239,68,68,0.3);color:#fca5a5;">🔒 Blocked</span>
+                        <span class="cred-email">rahul.verma@student.edu</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right form panel -->
+        <div class="login-form-panel">
+            <!-- TABS: Login | Request Unblock -->
+            <div class="form-container">
+
+                <!-- Tab switcher -->
+                <div id="tabSwitcher" style="display:flex; gap:4px; margin-bottom:24px; background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:4px;">
+                    <button class="tab-btn active" id="tabLoginBtn" onclick="switchTab('login')" style="flex:1;padding:8px 12px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;font-family:inherit;font-size:0.8rem;font-weight:700;cursor:pointer;transition:var(--transition);">
+                        🔑 Login
+                    </button>
+                    <button class="tab-btn" id="tabUnblockBtn" onclick="switchTab('unblock')" style="flex:1;padding:8px 12px;border:none;border-radius:8px;background:transparent;color:var(--text-secondary);font-family:inherit;font-size:0.8rem;font-weight:600;cursor:pointer;transition:var(--transition);">
+                        🔓 Request Unblock
+                    </button>
+                </div>
+
+                <!-- ====== TAB 1: LOGIN ====== -->
+                <div id="tabLogin">
+                    <div class="form-header">
+                        <h2>Welcome Back</h2>
+                        <p>Sign in to your account to continue</p>
+                    </div>
+
+                    <div id="alertBox" class="alert-box" style="display:none;"></div>
+
+                    <form id="loginForm" novalidate>
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <div class="input-wrapper">
+                                <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                                <input type="email" id="email" name="email" placeholder="your@email.edu" autocomplete="email" required oninput="checkBlockedEmail(this.value)">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <div class="input-wrapper">
+                                <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                <input type="password" id="password" name="password" placeholder="Your secure password" autocomplete="current-password" required>
+                                <button type="button" class="toggle-password" onclick="togglePassword()">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Security Verification</label>
+                            <div class="captcha-box">
+                                <div class="captcha-question">
+                                    <span id="captchaText" class="captcha-math"></span>
+                                    <button type="button" class="captcha-refresh" onclick="generateCaptcha()" title="Refresh">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                                    </button>
+                                </div>
+                                <input type="text" id="captchaAnswer" name="captchaAnswer" placeholder="Enter answer" class="captcha-input" maxlength="4" required autocomplete="off">
+                                <input type="hidden" id="captchaExpected" name="captchaExpected">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-login" id="loginBtn">
+                            <span id="loginBtnText">Sign In</span>
+                            <svg class="btn-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </button>
+                    </form>
+
+                    <!-- Score bar -->
+                    <div id="scoreIndicator" class="score-indicator" style="display:none;">
+                        <div class="score-label">
+                            <span>Login Score</span><span id="scoreValue">100</span>
+                        </div>
+                        <div class="score-bar"><div id="scoreBar" class="score-fill" style="width:100%"></div></div>
+                    </div>
+
+                    <!-- Quick unblock hint — shown when blocked email detected -->
+                    <div id="blockedHint" style="display:none; margin-top:16px; padding:12px 14px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.25); border-radius:8px; font-size:0.8rem; color:#f87171; animation:slideIn 0.3s ease;">
+                        <strong>🔒 Account Blocked?</strong><br>
+                        <span style="color:var(--text-secondary);">This email is blocked. </span>
+                        <a href="#" onclick="switchTab('unblock'); document.getElementById('unblockEmail').value=document.getElementById('email').value; return false;" style="color:#f87171; font-weight:600; text-decoration:underline;">Request Unblock →</a>
+                    </div>
+
+                    <div class="form-footer">
+                        <p>Secure system — All login attempts are monitored and recorded.</p>
+                    </div>
+                </div>
+
+                <!-- ====== TAB 2: REQUEST UNBLOCK ====== -->
+                <div id="tabUnblock" style="display:none;">
+                    <div class="form-header">
+                        <h2 style="color:#f87171;">🔓 Request Unblock</h2>
+                        <p>Blocked students can submit an unblock request to their staff.</p>
+                    </div>
+
+                    <div id="unblockAlert" class="alert-box" style="display:none;"></div>
+                    <div id="unblockSuccess" style="display:none; text-align:center; padding:24px;">
+                        <div style="font-size:3rem; margin-bottom:12px;">✅</div>
+                        <div style="font-size:1.1rem; font-weight:700; color:var(--success); margin-bottom:8px;">Request Submitted!</div>
+                        <p style="font-size:0.875rem; color:var(--text-secondary);">Your unblock request has been sent to the staff. You will be able to login once they approve it.</p>
+                        <button class="btn-login" onclick="switchTab('login')" style="margin-top:16px; background:linear-gradient(135deg,#10B981,#06B6D4);">Back to Login</button>
+                    </div>
+
+                    <form id="unblockForm" novalidate>
+                        <div class="form-group">
+                            <label for="unblockEmail">Your Student Email</label>
+                            <div class="input-wrapper">
+                                <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                                <input type="email" id="unblockEmail" placeholder="your@student.edu" required autocomplete="email">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="unblockReason">Reason for Unblock Request</label>
+                            <textarea id="unblockReason" style="width:100%; padding:12px 14px; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-xs); color:var(--text-primary); font-family:inherit; font-size:0.875rem; resize:vertical; min-height:90px; outline:none;" placeholder="Explain why your account should be unblocked. E.g.: I accidentally entered the wrong password multiple times. I am requesting reinstatement..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn-login" id="unblockBtn" style="background:linear-gradient(135deg,#EF4444,#F59E0B);">
+                            <span id="unblockBtnText">📩 Send Unblock Request</span>
+                        </button>
+
+                        <div style="margin-top:14px; text-align:center;">
+                            <a href="#" onclick="switchTab('login'); return false;" style="font-size:0.8rem; color:var(--text-muted);">← Back to Login</a>
+                        </div>
+                    </form>
+
+                    <div class="form-footer" style="margin-top:16px;">
+                        <p>Only blocked student accounts can submit unblock requests. Staff and admin accounts should contact the system administrator.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="js/ui-utils.js"></script>
+    <script>
+    // ============================================================
+    // CAPTCHA
+    // ============================================================
+    function generateCaptcha() {
+        const ops = ['+', '-', '×'];
+        const op = ops[Math.floor(Math.random() * ops.length)];
+        let a, b, answer;
+        switch(op) {
+            case '+': a=rand(1,15); b=rand(1,15); answer=a+b; break;
+            case '-': a=rand(5,20); b=rand(1,a);  answer=a-b; break;
+            case '×': a=rand(2,9);  b=rand(2,9);  answer=a*b; break;
+        }
+        document.getElementById('captchaText').textContent = `${a} ${op} ${b} = ?`;
+        document.getElementById('captchaExpected').value = answer;
+        document.getElementById('captchaAnswer').value = '';
+    }
+    function rand(min, max) { return Math.floor(Math.random()*(max-min+1))+min; }
+
+    // ============================================================
+    // TAB SWITCHER
+    // ============================================================
+    function switchTab(tab) {
+        const loginTab   = document.getElementById('tabLogin');
+        const unblockTab = document.getElementById('tabUnblock');
+        const loginBtn   = document.getElementById('tabLoginBtn');
+        const unbBtn     = document.getElementById('tabUnblockBtn');
+
+        if (tab === 'login') {
+            loginTab.style.display   = 'block';
+            unblockTab.style.display = 'none';
+            loginBtn.style.background = 'linear-gradient(135deg,var(--primary),var(--accent))';
+            loginBtn.style.color = '#fff';
+            unbBtn.style.background = 'transparent';
+            unbBtn.style.color = 'var(--text-secondary)';
+        } else {
+            loginTab.style.display   = 'none';
+            unblockTab.style.display = 'block';
+            unbBtn.style.background = 'linear-gradient(135deg,#EF4444,#F59E0B)';
+            unbBtn.style.color = '#fff';
+            loginBtn.style.background = 'transparent';
+            loginBtn.style.color = 'var(--text-secondary)';
+        }
+    }
+
+    // ============================================================
+    // CHECK IF EMAIL IS BLOCKED (live check as user types)
+    // ============================================================
+    let blockCheckTimer = null;
+    function checkBlockedEmail(email) {
+        clearTimeout(blockCheckTimer);
+        const hint = document.getElementById('blockedHint');
+        if (!email || !email.includes('@')) { hint.style.display='none'; return; }
+        blockCheckTimer = setTimeout(async () => {
+            try {
+                const r = await fetch(`api/public-unblock?email=${encodeURIComponent(email)}`);
+                const d = await r.json();
+                hint.style.display = d.blocked ? 'block' : 'none';
+            } catch(e) { hint.style.display = 'none'; }
+        }, 600);
+    }
+
+    // ============================================================
+    // FILL CREDENTIALS
+    // ============================================================
+    function fillCredentials(email, password) {
+        document.getElementById('email').value    = email;
+        document.getElementById('password').value = password;
+        document.getElementById('captchaAnswer').focus();
+        showAlert('Credentials filled! Enter the CAPTCHA to login.', 'info');
+        checkBlockedEmail(email);
+    }
+
+    function togglePassword() {
+        const p = document.getElementById('password');
+        p.type = p.type === 'password' ? 'text' : 'password';
+    }
+
+    // ============================================================
+    // ALERT
+    // ============================================================
+    function showAlert(message, type, boxId='alertBox') {
+        const box = document.getElementById(boxId);
+        const icons = { error:'⛔', success:'✅', warning:'⚠️', info:'ℹ️', blocked:'🔒' };
+        box.innerHTML = `<span class="alert-icon">${icons[type]||'ℹ️'}</span> ${message}`;
+        box.className = `alert-box ${type}`;
+        box.style.display = 'flex';
+        if (type==='success'||type==='info') setTimeout(()=>{ box.style.display='none'; }, 5000);
+    }
+
+    function updateScoreBar(score) {
+        const ind = document.getElementById('scoreIndicator');
+        const bar = document.getElementById('scoreBar');
+        const val = document.getElementById('scoreValue');
+        ind.style.display = 'block';
+        val.textContent = score+'/100';
+        bar.style.width = score+'%';
+        bar.style.background = score>60 ? 'linear-gradient(90deg,#22c55e,#4ade80)'
+                             : score>30 ? 'linear-gradient(90deg,#f59e0b,#fbbf24)'
+                             :            'linear-gradient(90deg,#ef4444,#f87171)';
+    }
+
+    // ============================================================
+    // LOGIN FORM SUBMIT
+    // ============================================================
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('loginBtn');
+        const txt = document.getElementById('loginBtnText');
+        document.getElementById('alertBox').style.display = 'none';
+        btn.disabled = true; txt.textContent = 'Signing in...'; btn.classList.add('loading');
+
+        const params = new URLSearchParams(new FormData(this));
+        try {
+            const resp = await fetch('login', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:params.toString() });
+            if (resp.redirected) { showAlert('Login successful! Redirecting...','success'); window.location.href=resp.url; return; }
+            const data = await resp.json();
+            if (data.success) {
+                showAlert('Login successful! Redirecting...','success');
+                window.location.href = data.redirect || './';
+            } else {
+                const type = (data.errorType==='blocked'||data.errorType==='auto_blocked') ? 'blocked' : 'error';
+                showAlert(data.message, type);
+                const m = data.message.match(/Login score: (\d+)/);
+                if (m) updateScoreBar(parseInt(m[1]));
+                // Auto-show unblock hint if blocked
+                if (type === 'blocked') document.getElementById('blockedHint').style.display = 'block';
+                generateCaptcha();
+            }
+        } catch(err) {
+            showAlert('Connection error. Please try again.','error');
+        } finally {
+            btn.disabled=false; txt.textContent='Sign In'; btn.classList.remove('loading');
+        }
+    });
+
+    // ============================================================
+    // UNBLOCK FORM SUBMIT
+    // ============================================================
+    document.getElementById('unblockForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const email  = document.getElementById('unblockEmail').value.trim();
+        const reason = document.getElementById('unblockReason').value.trim();
+        if (!email) { showAlert('Please enter your email address','error','unblockAlert'); return; }
+
+        const btn = document.getElementById('unblockBtn');
+        const txt = document.getElementById('unblockBtnText');
+        btn.disabled=true; txt.textContent='Sending...';
+        document.getElementById('unblockAlert').style.display='none';
+
+        try {
+            const resp = await fetch('api/public-unblock', {
+                method:'POST',
+                headers:{'Content-Type':'application/x-www-form-urlencoded'},
+                body:`email=${encodeURIComponent(email)}&reason=${encodeURIComponent(reason)}`
+            });
+            const data = await resp.json();
+            if (data.success) {
+                document.getElementById('unblockForm').style.display   = 'none';
+                document.getElementById('unblockSuccess').style.display = 'block';
+            } else {
+                showAlert(data.message,'error','unblockAlert');
+            }
+        } catch(err) {
+            showAlert('Connection error. Please try again.','error','unblockAlert');
+        } finally {
+            btn.disabled=false; txt.textContent='📩 Send Unblock Request';
+        }
+    });
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        generateCaptcha();
+        document.getElementById('email').focus();
+    });
+    </script>
+</body>
+</html>

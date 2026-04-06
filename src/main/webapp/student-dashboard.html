@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard — SecureEdu</title>
+    <meta name="description" content="Student academic dashboard with marks, attendance, login history, and security score.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="js/fireworks.js"></script>
+    <script src="js/ui-utils.js"></script>
+</head>
+<body class="dashboard-page student-role">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">🎓</div>
+            <div>
+                <div class="sidebar-app-name">SecureEdu</div>
+                <div class="sidebar-role">Student Portal</div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section-title">Overview</div>
+            <div class="nav-item active" onclick="showSection('overview')" id="nav-overview">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                Dashboard
+            </div>
+            <div class="nav-item" onclick="showSection('marks')" id="nav-marks">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Marks & Grades
+            </div>
+            <div class="nav-item" onclick="showSection('subjects')" id="nav-subjects">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                My Subjects
+            </div>
+
+            <div class="nav-section-title">Security</div>
+            <div class="nav-item" onclick="showSection('security')" id="nav-security">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Security Score
+            </div>
+            <div class="nav-item" onclick="showSection('history')" id="nav-history">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Login History
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-card">
+                <div class="user-avatar" id="userAvatar">?</div>
+                <div class="user-info">
+                    <div class="user-name" id="sidebarName">Loading...</div>
+                    <div class="user-role">Student</div>
+                </div>
+            </div>
+            <button class="btn-logout" onclick="logout()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Sign Out
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <!-- Top bar -->
+        <div class="dashboard-topbar">
+            <div>
+                <div class="topbar-title" id="pageTitle">My Dashboard</div>
+                <div class="topbar-subtitle" id="pageSubtitle">Welcome back! Here's your academic overview.</div>
+            </div>
+            <div class="topbar-actions">
+                <div id="blockBanner" style="display:none;">
+                    <span class="badge danger">🔒 Account Blocked</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Sections -->
+        <div class="dashboard-content">
+
+            <!-- ===== SECTION: OVERVIEW ===== -->
+            <div id="section-overview" class="section">
+
+                <!-- Blocked account alert -->
+                <div id="blockedAlert" class="card mb-6" style="display:none; border-color: rgba(239,68,68,0.4);">
+                    <div class="card-body" style="display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
+                        <div style="font-size:2rem;">🔒</div>
+                        <div style="flex:1;">
+                            <div style="font-size:1rem; font-weight:700; color:#f87171; margin-bottom:4px;">Account Blocked</div>
+                            <div style="font-size:0.875rem; color:var(--text-secondary);">Your account has been blocked due to too many failed login attempts. Click the button to request reinstatement.</div>
+                        </div>
+                        <div>
+                            <button class="btn btn-danger" id="unblockRequestBtn" onclick="showUnblockModal()">📩 Request Unblock</button>
+                            <p id="pendingUnblockMsg" style="display:none; text-align:center; margin-top:8px; font-size:0.8rem; color:var(--warning);">✓ Request Pending</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats row -->
+                <div class="stats-grid">
+                    <div class="stat-card primary">
+                        <div class="stat-icon primary">📚</div>
+                        <div class="stat-value" id="stat-subjects">--</div>
+                        <div class="stat-label">Enrolled Subjects</div>
+                    </div>
+                    <div class="stat-card success">
+                        <div class="stat-icon success">📅</div>
+                        <div class="stat-value" id="stat-attendance">--%</div>
+                        <div class="stat-label">Attendance</div>
+                    </div>
+                    <div class="stat-card info">
+                        <div class="stat-icon info">📊</div>
+                        <div class="stat-value" id="stat-avg-marks">--</div>
+                        <div class="stat-label">Avg. Marks</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-icon warning">🏆</div>
+                        <div class="stat-value" id="stat-grade">--</div>
+                        <div class="stat-label">Current Grade</div>
+                    </div>
+                    <div class="stat-card danger">
+                        <div class="stat-icon danger">⚠️</div>
+                        <div class="stat-value" id="stat-fails">--</div>
+                        <div class="stat-label">Failed Attempts</div>
+                    </div>
+                </div>
+
+                <!-- Student profile + Score -->
+                <div class="grid-2 mb-6">
+                    <!-- Profile card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">My Profile</div>
+                                <div class="card-subtitle">Academic information</div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <table class="data-table">
+                                <tbody>
+                                    <tr><td style="color:var(--text-muted); width:40%;">Name</td><td id="prof-name" style="font-weight:600;">--</td></tr>
+                                    <tr><td style="color:var(--text-muted);">Email</td><td id="prof-email">--</td></tr>
+                                    <tr><td style="color:var(--text-muted);">Roll Number</td><td id="prof-roll">--</td></tr>
+                                    <tr><td style="color:var(--text-muted);">Department</td><td id="prof-dept">--</td></tr>
+                                    <tr><td style="color:var(--text-muted);">Semester</td><td id="prof-sem">--</td></tr>
+                                    <tr><td style="color:var(--text-muted);">Staff (Teacher)</td><td id="prof-staff">--</td></tr>
+                                    <tr><td style="color:var(--text-muted);">Last Login</td><td id="prof-lastlogin">--</td></tr>
+                                    <tr><td style="color:var(--text-muted);">Status</td><td><span id="prof-status" class="badge">--</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Security score card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">Login Security Score</div>
+                                <div class="card-subtitle">Score decreases on failed attempts</div>
+                            </div>
+                        </div>
+                        <div class="card-body" style="text-align:center; padding:28px;">
+                            <div style="position:relative; width:120px; height:120px; margin:0 auto 20px;">
+                                <svg width="120" height="120" viewBox="0 0 120 120">
+                                    <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10"/>
+                                    <circle cx="60" cy="60" r="50" fill="none" stroke="url(#scoreGrad)" stroke-width="10"
+                                            stroke-linecap="round"
+                                            stroke-dasharray="314"
+                                            id="scoreCircle" stroke-dashoffset="314"
+                                            transform="rotate(-90 60 60)"/>
+                                    <defs>
+                                        <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" stop-color="#7C3AED"/>
+                                            <stop offset="100%" stop-color="#06B6D4"/>
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                                    <div id="scoreNum" style="font-size:1.75rem;font-weight:800;">100</div>
+                                    <div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;">/ 100</div>
+                                </div>
+                            </div>
+                            <div style="font-size:0.875rem; color:var(--text-secondary); margin-bottom:16px;">
+                                Score reduces by <strong style="color:#f87171;">10 points</strong> per wrong attempt.<br>
+                                Account blocks at <strong style="color:#f87171;">20 or below</strong>.
+                            </div>
+                            <div class="progress-bar" style="height:8px;">
+                                <div class="progress-fill" id="scoreFill" style="width:100%; background: linear-gradient(90deg, #7C3AED, #06B6D4);"></div>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.7rem; color:var(--text-muted); margin-top:6px;">
+                                <span>0 (Blocked)</span><span>50</span><span>100 (Safe)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attendance visual -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Attendance Overview</div>
+                    </div>
+                    <div class="card-body">
+                        <div style="display:flex; align-items:center; gap:20px;">
+                            <div style="font-size:3rem; font-weight:800;" id="attendPct">--</div>
+                            <div style="flex:1;">
+                                <div id="attendStatus" style="font-size:0.875rem; margin-bottom:8px;"></div>
+                                <div class="progress-bar" style="height:12px;">
+                                    <div class="progress-fill" id="attendBar" style="width:0%; background:linear-gradient(90deg,#10B981,#34d399);"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SECTION: MARKS ===== -->
+            <div id="section-marks" class="section" style="display:none;">
+                <div class="card mb-6">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Subject-wise Marks</div>
+                            <div class="card-subtitle">Performance across all enrolled subjects</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="marksChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Marks table -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Detailed Marks</div>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Code</th>
+                                    <th>Marks</th>
+                                    <th>Max</th>
+                                    <th>Percentage</th>
+                                    <th>Grade</th>
+                                </tr>
+                            </thead>
+                            <tbody id="marksTableBody">
+                                <tr><td colspan="6" class="text-center" style="padding:32px; color:var(--text-muted);">Loading marks...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SECTION: SUBJECTS ===== -->
+            <div id="section-subjects" class="section" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">My Enrolled Subjects</div>
+                        <button class="btn btn-primary" onclick="showEnrollModal()">+ Enroll in Subject</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>Subject</th><th>Code</th><th>Credits</th><th>Teacher</th><th>Status</th></tr>
+                            </thead>
+                            <tbody id="subjectsTableBody">
+                                <tr><td colspan="5" class="text-center" style="padding:32px; color:var(--text-muted);">Loading subjects...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SECTION: SECURITY ===== -->
+            <div id="section-security" class="section" style="display:none;">
+                <div class="stats-grid">
+                    <div class="stat-card primary">
+                        <div class="stat-icon primary">🛡️</div>
+                        <div class="stat-value" id="sec-score">--</div>
+                        <div class="stat-label">Security Score</div>
+                    </div>
+                    <div class="stat-card danger">
+                        <div class="stat-icon danger">❌</div>
+                        <div class="stat-value" id="sec-fails">--</div>
+                        <div class="stat-label">Total Failed Attempts</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-icon warning">🔁</div>
+                        <div class="stat-value" id="sec-consec">--</div>
+                        <div class="stat-label">Consecutive Fails</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Risk Assessment</div>
+                    </div>
+                    <div class="card-body" id="riskDetail">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SECTION: HISTORY ===== -->
+            <div id="section-history" class="section" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Login History</div>
+                            <div class="card-subtitle">All login attempts with device & IP info</div>
+                        </div>
+                        <div id="historyCount" class="badge primary">0 records</div>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>#</th><th>Date & Time</th><th>IP Address</th><th>Device</th><th>Status</th><th>Risk Level</th></tr>
+                            </thead>
+                            <tbody id="historyTableBody">
+                                <tr><td colspan="6" class="text-center" style="padding:32px;"><div class="spinner"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /.dashboard-content -->
+    </main>
+
+    <!-- ===== UNBLOCK REQUEST MODAL ===== -->
+    <div class="modal-overlay" id="unblockModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">🔓 Request Account Unblock</div>
+                <button class="modal-close" onclick="closeModal('unblockModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:0.875rem; color:var(--text-secondary); margin-bottom:16px;">
+                    Your request will be sent to your assigned staff member for review.
+                </p>
+                <label class="form-label">Reason for Unblock Request</label>
+                <textarea id="unblockReason" class="form-control" rows="4" 
+                          placeholder="Explain why your account should be unblocked..." style="resize:vertical;"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('unblockModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="submitUnblockRequest()">Send Request</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ENROLL MODAL ===== -->
+    <div class="modal-overlay" id="enrollModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">📚 Enroll in Subject</div>
+                <button class="modal-close" onclick="closeModal('enrollModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label">Select Subject</label>
+                <select id="enrollSubjectSelect" class="form-control filter-select" style="width:100%;">
+                    <option value="">Loading subjects...</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('enrollModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="submitEnrollment()">Enroll</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+    // ============================================================
+    // STUDENT DASHBOARD JAVASCRIPT
+    // ============================================================
+
+    let studentData  = null;
+    let historyData  = null;
+    let marksData    = null;
+    let marksChart   = null;
+    let subjectsData = null;
+    let allSubjects  = [];
+
+    // ---- INIT ----
+    window.addEventListener('DOMContentLoaded', async () => {
+        try {
+            // 🎆 Welcome celebration!
+            setTimeout(() => { if (window.SecureEduFireworks) window.SecureEduFireworks.launch(); }, 200);
+            await loadDashboard();
+            await loadMarks();
+        } catch(err) {
+            if (err.status === 401) window.location.href = 'index.html';
+        }
+    });
+
+    // ---- LOAD DASHBOARD DATA ----
+    async function loadDashboard() {
+        const resp = await apiFetch('api/student?action=dashboard');
+        if (!resp.success) { toast(resp.message || 'Failed to load', 'error'); return; }
+        studentData = resp;
+
+        const s = resp.student;
+        const stats = resp.loginStats;
+
+        // Sidebar
+        document.getElementById('sidebarName').textContent = s.name;
+        document.getElementById('userAvatar').textContent  = s.name.charAt(0).toUpperCase();
+
+        // Stats cards
+        document.getElementById('stat-subjects').textContent = resp.marksSummary.subjectCount;
+        document.getElementById('stat-attendance').textContent = s.attendance + '%';
+        document.getElementById('stat-avg-marks').textContent = resp.marksSummary.average || '--';
+        document.getElementById('stat-grade').textContent = s.grade;
+        document.getElementById('stat-fails').textContent = stats.totalFails;
+
+        // Profile table
+        document.getElementById('prof-name').textContent = s.name;
+        document.getElementById('prof-email').textContent = s.email;
+        document.getElementById('prof-roll').textContent = s.rollNumber || '--';
+        document.getElementById('prof-dept').textContent = s.department || '--';
+        document.getElementById('prof-sem').textContent = s.semester || '--';
+        document.getElementById('prof-staff').textContent = s.staffName;
+        document.getElementById('prof-lastlogin').textContent = s.lastLogin || 'Never';
+
+        const statusEl = document.getElementById('prof-status');
+        statusEl.textContent = s.status.toUpperCase();
+        statusEl.className = 'badge ' + (s.status === 'active' ? 'success' : 'danger');
+
+        // Score circle
+        const score = s.loginScore;
+        document.getElementById('scoreNum').textContent = score;
+        document.getElementById('scoreFill').style.width = score + '%';
+        const dashoffset = 314 - (314 * score / 100);
+        document.getElementById('scoreCircle').setAttribute('stroke-dashoffset', dashoffset);
+
+        // Score color
+        let scoreColor;
+        if (score > 60) scoreColor = '#22c55e';
+        else if (score > 30) scoreColor = '#f59e0b';
+        else scoreColor = '#ef4444';
+        document.getElementById('scoreNum').style.color = scoreColor;
+
+        // Attendance
+        document.getElementById('attendPct').textContent = s.attendance + '%';
+        document.getElementById('attendBar').style.width = s.attendance + '%';
+        let attendMsg = s.attendance >= 75 ? '✅ Good attendance' :
+                        s.attendance >= 50 ? '⚠️ Low attendance — improve this' :
+                                             '❌ Critical — attendance too low';
+        let attendColor = s.attendance >= 75 ? 'var(--success)' : s.attendance >= 50 ? 'var(--warning)' : 'var(--danger)';
+        document.getElementById('attendStatus').innerHTML = `<span style="color:${attendColor};">${attendMsg}</span>`;
+
+        // Blocked state
+        if (s.status === 'blocked') {
+            document.getElementById('blockedAlert').style.display = 'flex';
+            document.getElementById('blockBanner').style.display = 'block';
+            if (resp.hasPendingUnblock) {
+                document.getElementById('unblockRequestBtn').style.display = 'none';
+                document.getElementById('pendingUnblockMsg').style.display = 'block';
+            }
+        }
+
+        // Security section
+        document.getElementById('sec-score').textContent = score;
+        document.getElementById('sec-fails').textContent = stats.totalFails;
+        document.getElementById('sec-consec').textContent = stats.consecutiveFails;
+
+        // Risk detail
+        const riskLevel = score > 60 ? 'LOW' : score > 30 ? 'MEDIUM' : 'HIGH';
+        const riskColor = score > 60 ? 'var(--success)' : score > 30 ? 'var(--warning)' : 'var(--danger)';
+        document.getElementById('riskDetail').innerHTML = `
+            <div style="text-align:center; padding:20px;">
+                <div style="font-size:3rem; margin-bottom:12px;">${score > 60 ? '🟢' : score > 30 ? '🟡' : '🔴'}</div>
+                <div style="font-size:1.5rem; font-weight:800; color:${riskColor}; margin-bottom:8px;">${riskLevel} RISK</div>
+                <p style="color:var(--text-secondary); font-size:0.875rem; max-width:400px; margin:0 auto;">
+                    ${score > 60 ? 'Your account is secure. Continue using strong passwords and keep your login score high.' :
+                      score > 30 ? 'Your score is declining. Avoid more failed attempts to prevent account blocking.' :
+                                   'Your account is at high risk of being blocked. Contact staff for assistance.'}
+                </p>
+            </div>
+        `;
+    }
+
+    // ---- LOAD MARKS ----
+    async function loadMarks() {
+        const resp = await apiFetch('api/student?action=marks');
+        if (!resp.success) return;
+        marksData = resp;
+
+        // Chart
+        if (marksChart) marksChart.destroy();
+        const ctx = document.getElementById('marksChart').getContext('2d');
+        marksChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: resp.labels,
+                datasets: [
+                    {
+                        label: 'Obtained Marks',
+                        data: resp.marks,
+                        backgroundColor: 'rgba(124,58,237,0.7)',
+                        borderColor: '#7C3AED',
+                        borderWidth: 2,
+                        borderRadius: 6,
+                    },
+                    {
+                        label: 'Maximum Marks',
+                        data: resp.maxMarks,
+                        backgroundColor: 'rgba(255,255,255,0.06)',
+                        borderColor: 'rgba(255,255,255,0.2)',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#A0A0B0', font: { family: 'Inter' } } },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => ` ${ctx.dataset.label}: ${ctx.raw}`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#A0A0B0', font: { family: 'Inter' } },
+                        grid:  { color: 'rgba(255,255,255,0.05)' }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#A0A0B0', font: { family: 'Inter' } },
+                        grid:  { color: 'rgba(255,255,255,0.05)' }
+                    }
+                }
+            }
+        });
+
+        // Table
+        const tbody = document.getElementById('marksTableBody');
+        if (resp.labels.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center" style="padding:32px; color:var(--text-muted);">No marks recorded yet</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = resp.labels.map((label, i) => {
+            const marks = resp.marks[i];
+            const maxMarks = resp.maxMarks[i];
+            const pct = maxMarks > 0 ? Math.round((marks / maxMarks) * 100) : 0;
+            const grade = pct >= 90 ? 'A+' : pct >= 80 ? 'A' : pct >= 70 ? 'B' : pct >= 60 ? 'C' : pct >= 50 ? 'D' : 'F';
+            const gradeClass = pct >= 70 ? 'success' : pct >= 50 ? 'warning' : 'danger';
+            const parts = label.split(': ');
+            return `<tr>
+                <td style="font-weight:600;">${parts[1] || label}</td>
+                <td><code style="color:var(--primary-light);">${parts[0]}</code></td>
+                <td style="font-weight:700;">${marks}</td>
+                <td style="color:var(--text-muted);">${maxMarks}</td>
+                <td>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div class="progress-bar" style="height:6px;width:80px;">
+                            <div class="progress-fill" style="width:${pct}%;background:${pct>=70?'#22c55e':pct>=50?'#f59e0b':'#ef4444'};"></div>
+                        </div>
+                        ${pct}%
+                    </div>
+                </td>
+                <td><span class="badge ${gradeClass}">${grade}</span></td>
+            </tr>`;
+        }).join('');
+    }
+
+    // ---- LOAD SUBJECTS ----
+    async function loadSubjects() {
+        const resp = await apiFetch('api/student?action=subjects');
+        if (!resp.success) return;
+        subjectsData = resp;
+
+        const tbody = document.getElementById('subjectsTableBody');
+        if (resp.subjects.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center" style="padding:32px; color:var(--text-muted);">No subjects enrolled yet</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = resp.subjects.map(s => `<tr>
+            <td style="font-weight:600;">${s.name}</td>
+            <td><code style="color:var(--primary-light);">${s.code}</code></td>
+            <td>${s.credits} credits</td>
+            <td>${s.staffName}</td>
+            <td><span class="badge ${s.status === 'accepted' ? 'success' : s.status === 'pending' ? 'warning' : 'danger'}">${s.status}</span></td>
+        </tr>`).join('');
+    }
+
+    // ---- LOAD HISTORY ----
+    async function loadHistory() {
+        const resp = await apiFetch('api/student?action=history');
+        if (!resp.success) return;
+        historyData = resp;
+
+        document.getElementById('historyCount').textContent = resp.totalAttempts + ' records';
+
+        const tbody = document.getElementById('historyTableBody');
+        if (resp.history.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center" style="padding:32px; color:var(--text-muted);">No login history found</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = resp.history.map((a, i) => {
+            const riskClass = a.riskLevel === 'high' ? 'danger' : a.riskLevel === 'medium' ? 'warning' : 'success';
+            const statusClass = a.status === 'success' ? 'success' : a.status === 'blocked' ? 'danger' : 'warning';
+            return `<tr>
+                <td style="color:var(--text-muted);">${i + 1}</td>
+                <td style="white-space:nowrap;">${formatDate(a.timestamp)}</td>
+                <td><code>${a.ipAddress}</code></td>
+                <td>${a.device}</td>
+                <td><span class="badge ${statusClass}">${a.status}</span></td>
+                <td><span class="badge ${riskClass}">${a.riskLevel}</span></td>
+            </tr>`;
+        }).join('');
+    }
+
+    // ---- SECTION NAVIGATION ----
+    async function showSection(name) {
+        document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+        document.getElementById('section-' + name).style.display = 'block';
+        document.getElementById('nav-' + name).classList.add('active');
+
+        const titles = {
+            overview: ['My Dashboard', 'Welcome back! Here\'s your academic overview.'],
+            marks:    ['Marks & Grades', 'View your performance across all subjects.'],
+            subjects: ['My Subjects', 'Manage your enrolled subjects.'],
+            security: ['Security Score', 'Monitor your login security status.'],
+            history:  ['Login History', 'View all login attempts and device activity.']
+        };
+
+        const [title, subtitle] = titles[name] || ['Dashboard', ''];
+        document.getElementById('pageTitle').textContent = title;
+        document.getElementById('pageSubtitle').textContent = subtitle;
+
+        if (name === 'history' && !historyData)   await loadHistory();
+        if (name === 'subjects' && !subjectsData) await loadSubjects();
+    }
+
+    // ---- UNBLOCK REQUEST ----
+    function showUnblockModal() {
+        document.getElementById('unblockModal').classList.add('open');
+    }
+
+    async function submitUnblockRequest() {
+        const reason = document.getElementById('unblockReason').value.trim();
+        if (!reason) { toast('Please provide a reason', 'warning'); return; }
+
+        const resp = await apiPost('api/student?action=unblock', { reason });
+        if (resp.success) {
+            toast('Unblock request sent!', 'success');
+            closeModal('unblockModal');
+            document.getElementById('unblockRequestBtn').style.display = 'none';
+            document.getElementById('pendingUnblockMsg').style.display = 'block';
+        } else {
+            toast(resp.message, 'error');
+        }
+    }
+
+    // ---- ENROLL SUBJECT ----
+    async function showEnrollModal() {
+        document.getElementById('enrollModal').classList.add('open');
+        // Load all subjects
+        try {
+            const resp = await apiFetch('api/staff?action=subjects');
+            // Use subjects list approach - get all subjects via a simple endpoint
+            const r = await fetch('api/admin?action=allUsers'); // We'll need an all-subjects endpoint
+            // For now, use a simple static approach or fetch from staff endpoint
+        } catch(e) {}
+    }
+
+    async function submitEnrollment() {
+        const subjectId = document.getElementById('enrollSubjectSelect').value;
+        if (!subjectId) { toast('Please select a subject', 'warning'); return; }
+        const resp = await apiPost('api/student?action=enroll', { subjectId });
+        if (resp.success) {
+            toast('Enrolled successfully!', 'success');
+            closeModal('enrollModal');
+            subjectsData = null;
+            await loadSubjects();
+        } else {
+            toast(resp.message, 'error');
+        }
+    }
+
+    // ---- UTILITIES ----
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+    function logout() { window.location.href = 'logout'; }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '--';
+        return new Date(dateStr).toLocaleString('en-IN', {
+            day: '2-digit', month: 'short', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+    }
+
+    async function apiFetch(url) {
+        const resp = await fetch(url);
+        if (resp.status === 401) { window.location.href = 'index.html'; throw {status: 401}; }
+        return resp.json();
+    }
+
+    async function apiPost(url, data) {
+        const params = new URLSearchParams(data);
+        const resp = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString()
+        });
+        if (resp.status === 401) { window.location.href = 'index.html'; throw {status: 401}; }
+        return resp.json();
+    }
+
+    function toast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const icons = { success:'✅', error:'❌', warning:'⚠️', info:'ℹ️' };
+        const div = document.createElement('div');
+        div.className = `toast ${type}`;
+        div.innerHTML = `<span>${icons[type] || 'ℹ️'}</span><span>${message}</span>`;
+        container.appendChild(div);
+        setTimeout(() => div.remove(), 4000);
+    }
+    </script>
+</body>
+</html>
