@@ -6,3 +6,4 @@ target/
 hashes.txt
 test_output.txt
 .gemini/
+.env
