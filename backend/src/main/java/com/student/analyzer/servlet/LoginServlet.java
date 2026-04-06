@@ -49,7 +49,7 @@ public class LoginServlet extends HttpServlet {
             if (session != null) {
                 session.invalidate();
             }
-            resp.sendRedirect("http://localhost:3000/index.html");
+            resp.sendRedirect("/index.html");
             return;
         }
 
@@ -60,7 +60,7 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        resp.sendRedirect("http://localhost:3000/index.html");
+        resp.sendRedirect("/index.html");
     }
 
     /**
@@ -197,13 +197,12 @@ public class LoginServlet extends HttpServlet {
      * Sends JSON success response with the appropriate dashboard URL.
      */
     private void sendLoginSuccess(HttpServletResponse resp, String role) throws IOException {
-        String frontendBase = "http://localhost:3000";
-        String redirectUrl = frontendBase + "/index.html";
+        String redirectUrl = "/index.html";
         
         switch (role) {
-            case "admin":   redirectUrl = frontendBase + "/admin-dashboard.html";   break;
-            case "staff":   redirectUrl = frontendBase + "/staff-dashboard.html";   break;
-            case "student": redirectUrl = frontendBase + "/student-dashboard.html"; break;
+            case "admin":   redirectUrl = "/admin-dashboard.html";   break;
+            case "staff":   redirectUrl = "/staff-dashboard.html";   break;
+            case "student": redirectUrl = "/student-dashboard.html"; break;
         }
         
         resp.setContentType("application/json;charset=UTF-8");
@@ -218,12 +217,11 @@ public class LoginServlet extends HttpServlet {
      */
     private void redirectByRole(String role, HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
-        String frontendBase = "http://localhost:3000";
         switch (role) {
-            case "admin":   resp.sendRedirect(frontendBase + "/admin-dashboard.html");   break;
-            case "staff":   resp.sendRedirect(frontendBase + "/staff-dashboard.html");   break;
-            case "student": resp.sendRedirect(frontendBase + "/student-dashboard.html"); break;
-            default:        resp.sendRedirect(frontendBase + "/index.html");
+            case "admin":   resp.sendRedirect("/admin-dashboard.html");   break;
+            case "staff":   resp.sendRedirect("/staff-dashboard.html");   break;
+            case "student": resp.sendRedirect("/student-dashboard.html"); break;
+            default:        resp.sendRedirect("/index.html");
         }
     }
 
