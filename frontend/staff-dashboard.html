@@ -42,7 +42,7 @@
             <div class="user-avatar" id="userAvatar">S</div>
             <div class="user-info"><div class="user-name" id="sidebarName">Loading...</div><div class="user-role">Staff Member</div></div>
         </div>
-        <button class="btn-logout" onclick="window.location.href='logout'">Sign Out</button>
+        <button class="btn-logout" onclick="window.location.href='http://localhost:8080/logout'">Sign Out</button>
     </div>
 </aside>
 
@@ -173,6 +173,9 @@
 <script>
 let allStudents=[], staffData=null, mySubjects=[];
 window.addEventListener('DOMContentLoaded',async()=>{
+    const auth = await window.requireAuth('staff');
+    if(!auth) return;
+    
     setTimeout(()=>{ if(window.SecureEduFireworks) window.SecureEduFireworks.launch(); }, 200);
     await loadDashboard(); await loadStudents();
 });
@@ -322,8 +325,8 @@ async function showSection(name,el){
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function formatDate(d){if(!d||d==='Never')return 'Never';try{return new Date(d).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return d;}}
 function esc(s){return s?s.replace(/'/g,"\\'"):'';}
-async function apiFetch(url){const r=await fetch(url);if(r.status===401){window.location.href='index.html';throw{status:401};}return r.json();}
-async function apiPost(url,data){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(data).toString()});if(r.status===401){window.location.href='index.html';throw{status:401};}return r.json();}
+async function apiFetch(url){const r=await fetch('http://localhost:8080/'+url, {credentials:'include'});if(r.status===401){window.location.href='index.html';throw{status:401};}return r.json();}
+async function apiPost(url,data){const r=await fetch('http://localhost:8080/'+url,{method:'POST',credentials:'include',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(data).toString()});if(r.status===401){window.location.href='index.html';throw{status:401};}return r.json();}
 function toast(msg,type='info'){const c=document.getElementById('toastContainer'),icons={success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'},d=document.createElement('div');d.className=`toast ${type}`;d.innerHTML=`<span>${icons[type]}</span><span>${msg}</span>`;c.appendChild(d);setTimeout(()=>d.remove(),4000);}
 </script>
 </body>

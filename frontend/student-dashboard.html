@@ -394,13 +394,16 @@
 
     // ---- INIT ----
     window.addEventListener('DOMContentLoaded', async () => {
+        const auth = await window.requireAuth('student');
+        if (!auth) return;
+        
         try {
             // 🎆 Welcome celebration!
             setTimeout(() => { if (window.SecureEduFireworks) window.SecureEduFireworks.launch(); }, 200);
             await loadDashboard();
             await loadMarks();
         } catch(err) {
-            if (err.status === 401) window.location.href = 'index.html';
+            console.error('Data Load Failed:', err);
         }
     });
 
@@ -680,7 +683,7 @@
         try {
             const resp = await apiFetch('api/staff?action=subjects');
             // Use subjects list approach - get all subjects via a simple endpoint
-            const r = await fetch('api/admin?action=allUsers'); // We'll need an all-subjects endpoint
+            const r = await fetch('http://localhost:8080/api/admin?action=allUsers', { credentials: 'include' }); // We'll need an all-subjects endpoint
             // For now, use a simple static approach or fetch from staff endpoint
         } catch(e) {}
     }
@@ -701,7 +704,7 @@
 
     // ---- UTILITIES ----
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-    function logout() { window.location.href = 'logout'; }
+    function logout() { window.location.href = 'http://localhost:8080/logout'; }
 
     function formatDate(dateStr) {
         if (!dateStr) return '--';
@@ -712,15 +715,16 @@
     }
 
     async function apiFetch(url) {
-        const resp = await fetch(url);
+        const resp = await fetch('http://localhost:8080/' + url, { credentials: 'include' });
         if (resp.status === 401) { window.location.href = 'index.html'; throw {status: 401}; }
         return resp.json();
     }
 
     async function apiPost(url, data) {
         const params = new URLSearchParams(data);
-        const resp = await fetch(url, {
+        const resp = await fetch('http://localhost:8080/' + url, {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: params.toString()
         });

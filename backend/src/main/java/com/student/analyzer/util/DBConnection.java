@@ -12,9 +12,9 @@ import java.sql.SQLException;
 public class DBConnection {
 
     // ===== DATABASE CONFIGURATION (with environment variable support) =====
-    private static final String DEFAULT_URL  = "jdbc:mysql://localhost:3306/student_analyzer?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
-    private static final String DEFAULT_USER = "root";
-    private static final String DEFAULT_PASS = "";
+    private static final String DEFAULT_URL  = "jdbc:postgresql://ep-late-night-a8qs310v-pooler.eastus2.azure.neon.tech/neondb?sslmode=require&channel_binding=require";
+    private static final String DEFAULT_USER = "neondb_owner";
+    private static final String DEFAULT_PASS = "npg_RUQEry7Dub9h";
 
     // Static connection instance (singleton pattern)
     private static Connection connection = null;
@@ -28,8 +28,8 @@ public class DBConnection {
     public static Connection getConnection() throws SQLException {
         try {
             if (connection == null || connection.isClosed()) {
-                // 1. Load MySQL JDBC driver
-                Class.forName("com.mysql.cj.jdbc.Driver");
+                // 1. Load PostgreSQL JDBC driver
+                Class.forName("org.postgresql.Driver");
 
                 // 2. Get credentials from Environment Variables (for Cloud) or use defaults (for Local)
                 String envUrl  = System.getenv("DB_URL");

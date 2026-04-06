@@ -69,6 +69,29 @@
         updateToggleUI();
     };
 
+    window.requireAuth = async function (requiredRole) {
+        try {
+            const resp = await fetch('http://localhost:8080/api/auth/status', {
+                method: 'GET',
+                credentials: 'include'
+            });
+            const data = await resp.json();
+            if (!data.authenticated) {
+                window.location.href = 'index.html';
+                return null;
+            }
+            if (requiredRole && data.role !== requiredRole) {
+                window.location.href = 'index.html';
+                return null;
+            }
+            return data;
+        } catch (err) {
+            console.error('Auth Check Failed:', err);
+            window.location.href = 'index.html';
+            return null;
+        }
+    };
+
     document.addEventListener('DOMContentLoaded', function () {
         window.injectThemeToggle();
     });

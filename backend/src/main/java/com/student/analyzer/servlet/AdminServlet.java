@@ -158,7 +158,7 @@ public class AdminServlet extends HttpServlet {
                         out.print("{\"success\":false,\"message\":\"Email already exists\"}");
                         return;
                     }
-                    User newUser = new User(name, email.toLowerCase(), BCryptUtil.hashPassword(password), role);
+                    User newUser = new User(name, email.toLowerCase(), password, role);
                     int newUserId = userDAO.createUser(newUser);
                     // Create role-specific record
                     if (newUserId > 0) {
@@ -259,7 +259,7 @@ public class AdminServlet extends HttpServlet {
                           "SUM(CASE WHEN status='success' THEN 1 ELSE 0 END) as success_cnt, " +
                           "SUM(CASE WHEN status='failure' THEN 1 ELSE 0 END) as fail_cnt, " +
                           "SUM(CASE WHEN risk_level='high' THEN 1 ELSE 0 END) as high_risk " +
-                          "FROM login_attempts WHERE timestamp >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+                          "FROM login_attempts WHERE timestamp >= NOW() - INTERVAL '7 days'";
 
         int totalAttempts=0, successCnt=0, failCnt=0, highRisk=0;
         try (PreparedStatement ps = DBConnection.getConnection().prepareStatement(loginSql);
@@ -373,7 +373,7 @@ public class AdminServlet extends HttpServlet {
                           "SUM(CASE WHEN status='success' THEN 1 ELSE 0 END) as success, " +
                           "SUM(CASE WHEN status='failure' THEN 1 ELSE 0 END) as failure " +
                           "FROM login_attempts " +
-                          "WHERE timestamp >= DATE_SUB(NOW(), INTERVAL 7 DAY) " +
+                          "WHERE timestamp >= NOW() - INTERVAL '7 days' " +
                           "GROUP BY DATE(timestamp) ORDER BY day";
         JSONArray trend = new JSONArray();
         try (PreparedStatement ps = DBConnection.getConnection().prepareStatement(trendSql);

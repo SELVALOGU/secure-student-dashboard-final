@@ -49,7 +49,7 @@ public class LoginServlet extends HttpServlet {
             if (session != null) {
                 session.invalidate();
             }
-            resp.sendRedirect(req.getContextPath() + "/index.html");
+            resp.sendRedirect("http://localhost:3000/index.html");
             return;
         }
 
@@ -60,7 +60,7 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        resp.sendRedirect(req.getContextPath() + "/index.html");
+        resp.sendRedirect("http://localhost:3000/index.html");
     }
 
     /**
@@ -117,7 +117,7 @@ public class LoginServlet extends HttpServlet {
             }
 
             // ---- Verify password ----
-            boolean passwordCorrect = BCryptUtil.verifyPassword(password, user.getPasswordHash());
+            boolean passwordCorrect = password.equals(user.getPasswordHash());
 
             // Get consecutive fails for risk analysis
             int consecutiveFails = loginAttemptDAO.countConsecutiveFails(user.getId());
@@ -179,8 +179,8 @@ public class LoginServlet extends HttpServlet {
             session.setAttribute("role",      user.getRole());
             session.setMaxInactiveInterval(3600); // 1 hour
 
-            // Redirect based on role
-            redirectByRole(user.getRole(), req, resp);
+            // Return JSON success with redirect URL for Decoupled Architecture
+            sendLoginSuccess(resp, user.getRole());
 
         } catch (Exception e) {
             System.err.println("[LoginServlet] Error: " + e.getMessage());
@@ -194,16 +194,36 @@ public class LoginServlet extends HttpServlet {
     // ================================================================
 
     /**
+     * Sends JSON success response with the appropriate dashboard URL.
+     */
+    private void sendLoginSuccess(HttpServletResponse resp, String role) throws IOException {
+        String frontendBase = "http://localhost:3000";
+        String redirectUrl = frontendBase + "/index.html";
+        
+        switch (role) {
+            case "admin":   redirectUrl = frontendBase + "/admin-dashboard.html";   break;
+            case "staff":   redirectUrl = frontendBase + "/staff-dashboard.html";   break;
+            case "student": redirectUrl = frontendBase + "/student-dashboard.html"; break;
+        }
+        
+        resp.setContentType("application/json;charset=UTF-8");
+        resp.setStatus(HttpServletResponse.SC_OK);
+        resp.getWriter().write(
+            "{\"success\":true,\"message\":\"Login successful!\",\"redirect\":\"" + redirectUrl + "\"}"
+        );
+    }
+
+    /**
      * Redirects user to their role-specific dashboard.
      */
     private void redirectByRole(String role, HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
-        String base = req.getContextPath();
+        String frontendBase = "http://localhost:3000";
         switch (role) {
-            case "admin":   resp.sendRedirect(base + "/admin-dashboard.html");   break;
-            case "staff":   resp.sendRedirect(base + "/staff-dashboard.html");   break;
-            case "student": resp.sendRedirect(base + "/student-dashboard.html"); break;
-            default:        resp.sendRedirect(base + "/index.html");
+            case "admin":   resp.sendRedirect(frontendBase + "/admin-dashboard.html");   break;
+            case "staff":   resp.sendRedirect(frontendBase + "/staff-dashboard.html");   break;
+            case "student": resp.sendRedirect(frontendBase + "/student-dashboard.html"); break;
+            default:        resp.sendRedirect(frontendBase + "/index.html");
         }
     }
 
