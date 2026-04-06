@@ -259,6 +259,7 @@
         </div>
     </div>
 
+    <script src="js/config.js"></script>
     <script src="js/ui-utils.js"></script>
     <script>
     // ============================================================
@@ -315,7 +316,7 @@
         if (!email || !email.includes('@')) { hint.style.display='none'; return; }
         blockCheckTimer = setTimeout(async () => {
             try {
-                const r = await fetch(`http://localhost:8080/api/public-unblock?email=${encodeURIComponent(email)}`, { credentials: 'include' });
+                const r = await fetch(`${window.ENV.API_BASE_URL}/api/public-unblock?email=${encodeURIComponent(email)}`, { credentials: 'include' });
                 const d = await r.json();
                 hint.style.display = d.blocked ? 'block' : 'none';
             } catch(e) { hint.style.display = 'none'; }
@@ -374,7 +375,7 @@
 
         const params = new URLSearchParams(new FormData(this));
         try {
-            const resp = await fetch('http://localhost:8080/login', { method:'POST', credentials: 'include', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:params.toString() });
+            const resp = await fetch(`${window.ENV.API_BASE_URL}/login`, { method:'POST', credentials: 'include', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:params.toString() });
             if (resp.redirected) { showAlert('Login successful! Redirecting...','success'); window.location.href=resp.url; return; }
             const data = await resp.json();
             if (data.success) {
@@ -411,7 +412,7 @@
         document.getElementById('unblockAlert').style.display='none';
 
         try {
-            const resp = await fetch('http://localhost:8080/api/public-unblock', {
+            const resp = await fetch(`${window.ENV.API_BASE_URL}/api/public-unblock`, {
                 method:'POST',
                 credentials: 'include',
                 headers:{'Content-Type':'application/x-www-form-urlencoded'},

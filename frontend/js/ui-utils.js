@@ -71,7 +71,7 @@
 
     window.requireAuth = async function (requiredRole) {
         try {
-            const resp = await fetch('http://localhost:8080/api/auth/status', {
+            const resp = await fetch(`${window.ENV.API_BASE_URL}/api/auth/status`, {
                 method: 'GET',
                 credentials: 'include'
             });
